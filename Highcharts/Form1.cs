@@ -12,15 +12,16 @@ using Microsoft.Owin.FileSystems;
 using Microsoft.Owin.StaticFiles;
 using Microsoft.Owin.Hosting;
 using Owin;
+using System.Net.Http;
 
 namespace Highcharts
 {
     public partial class Form1 : Form
     {
-        WebView2 WebBrowser_1 = new WebView2();
-        // private LocalServer server;
         private OwinServer server;
         private string tempFilePath;
+        private static IDisposable _webApp;
+        private Microsoft.Web.WebView2.WinForms.WebView2 webView;
 
         public Form1()
         {
@@ -28,19 +29,36 @@ namespace Highcharts
             InitializeWebView2();
         }
 
+
+        private async void webView_CoreWebView2InitializationCompleted(object sender, Microsoft.Web.WebView2.Core.CoreWebView2InitializationCompletedEventArgs e)
+        {
+            if (webView != null && webView.CoreWebView2 != null)
+            {
+                webView.Dock = DockStyle.Fill;
+
+                webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                    "local", Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "libraryes"), CoreWebView2HostResourceAccessKind.Allow);
+
+                webView.CoreWebView2.Navigate("http://localhost:8000/" + AppDomain.CurrentDomain.BaseDirectory + "Chart.html");
+                
+                webView.CoreWebView2.DOMContentLoaded += CoreWebView2_DOMContentLoaded;
+            }
+        }
+
         private async void InitializeWebView2()
         {
             try
             {
-                var webView2Environment = await CoreWebView2Environment.CreateAsync();
-                await WebBrowser_1.EnsureCoreWebView2Async(webView2Environment);
+                string path = Path.Combine(Path.GetTempPath(), string.Format("{0}", Environment.UserName));
+
+                await InitAsync(path);
 
                 string baseFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory);
-                string serverUrl = "http://localhost:8080/";
+                string serverUrl = "http://localhost:8000/";
 
                 // Создаем временную копию HTML файла
                 string htmlFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Chart.html");
-                tempFilePath = Path.Combine("files/", Path.GetRandomFileName() + ".html");
+                tempFilePath = Path.Combine("files", Path.GetRandomFileName() + ".html");
                 File.Copy(htmlFilePath, tempFilePath, true);
 
                 // Запускаем OWIN сервер
@@ -49,24 +67,23 @@ namespace Highcharts
 
                 string resourcesPath = Path.Combine(baseFolder, "libraryes");
 
-                WebBrowser_1.CoreWebView2.SetVirtualHostNameToFolderMapping(
+                webView.CoreWebView2.SetVirtualHostNameToFolderMapping(
                     "local", resourcesPath, CoreWebView2HostResourceAccessKind.Allow);
 
-                WebBrowser_1.Dock = DockStyle.Fill;
-                this.Controls.Add(WebBrowser_1);
-
                 // Устанавливаем источник для WebView2
-                string htmlUri = serverUrl + tempFilePath;
-                Console.WriteLine(htmlUri);
-                WebBrowser_1.Source = new Uri(htmlUri);
-
-                WebBrowser_1.CoreWebView2.DOMContentLoaded += CoreWebView2_DOMContentLoaded;
+                string htmlUri = serverUrl + baseFolder + tempFilePath;
             }
             catch (Exception ex)
             {
                 Console.WriteLine("Error initializing WebView2: " + ex.Message);
             }
         }
+
+        private async Task InitAsync(string path) {
+            var env = await Microsoft.Web.WebView2.Core.CoreWebView2Environment.CreateAsync(userDataFolder: path);
+            await webView.EnsureCoreWebView2Async(env);
+        }
+
 
         private async void CoreWebView2_DOMContentLoaded(object sender, CoreWebView2DOMContentLoadedEventArgs e)
         {
@@ -75,16 +92,11 @@ namespace Highcharts
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            if (server == null)
-            {
-                server.Stop();
-            }
+            server.Stop();
         }
 
         public class OwinServer
         {
-            private IDisposable _webApp;
-
             public void Start(string baseFolder, string url)
             {
                 _webApp = WebApp.Start(url, app =>
@@ -101,93 +113,13 @@ namespace Highcharts
 
             public void Stop()
             {
-                _webApp.Dispose();
+                if(_webApp != null) {
+                    _webApp.Dispose();
+                }
             }
         }
 
-        public class LocalServer
-        {
-            private HttpListener _listener;
-            private string _baseFolder;
-
-            public LocalServer(string baseFolder, int port = 8080)
-            {
-                _baseFolder = baseFolder;
-                _listener = new HttpListener();
-                _listener.Prefixes.Add("http://localhost:" + port + "/");
-            }
-
-            public void Start()
-            {
-                _listener.Start();
-                Task.Run(() => HandleRequests());
-            }
-
-            private async Task HandleRequests()
-            {
-                while (_listener.IsListening)
-                {
-                    var context = await _listener.GetContextAsync();
-                    var response = context.Response;
-
-                    try
-                    {
-                        string filename = context.Request.Url.AbsolutePath.Substring(1);
-                        string filepath = Path.Combine(_baseFolder, filename);
-                        if (File.Exists(filepath))
-                        {
-                            byte[] buffer = File.ReadAllBytes(filepath);
-                            response.ContentType = GetContentType(filepath);
-                            response.ContentLength64 = buffer.Length;
-                            await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
-                        }
-                        else
-                        {
-                            response.StatusCode = (int)HttpStatusCode.NotFound;
-                            byte[] buffer = Encoding.UTF8.GetBytes("File not found");
-                            response.ContentLength64 = buffer.Length;
-                            await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Server error: " + ex.Message);
-                    }
-                    finally
-                    {
-                        response.OutputStream.Close();
-                    }
-                }
-            }
-
-            private string GetContentType(string path)
-            {
-                switch (Path.GetExtension(path).ToLower())
-                {
-                    case ".html":
-                        return "text/html";
-                    case ".css":
-                        return "text/css";
-                    case ".js":
-                        return "application/javascript";
-                    case ".png":
-                        return "image/png";
-                    case ".jpg":
-                    case ".jpeg":
-                        return "image/jpeg";
-                    default:
-                        return "application/octet-stream";
-                }
-            }
-
-            public void Stop()
-            {
-                _listener.Stop();
-            }
-        }
-
-        // private async void excel_reader()
-        private Task<string> excel_reader()
+        private async Task<string> excel_reader()
         {
             // Load Excel file
             Workbook wb = new Workbook(@"../../parameters.xlsx");
@@ -260,7 +192,7 @@ namespace Highcharts
                             new JProperty("data", all_data)
                         ) + ")";
 
-                        WebBrowser_1.ExecuteScriptAsync(script);
+                        await webView.ExecuteScriptAsync(script);
 
                         all_data.Clear();
                     }
@@ -278,12 +210,7 @@ namespace Highcharts
                         chart.addSeries(item);
                     };";
 
-            return WebBrowser_1.ExecuteScriptAsync(script);
-        }
-
-        private async void Form1_Load(object sender, EventArgs e)
-        {
-
+            return await webView.ExecuteScriptAsync(script);
         }
     }
 }

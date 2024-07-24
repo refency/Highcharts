@@ -19,7 +19,6 @@ C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\Mi
 C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\Microsoft.Web.WebView2.Core.xml
 C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\Microsoft.Web.WebView2.WinForms.xml
 C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\Microsoft.Web.WebView2.Wpf.xml
-C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\obj\Debug\Highcharts.Form1.resources
 C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\Microsoft.Owin.dll
 C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\Microsoft.Owin.FileSystems.dll
 C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\Microsoft.Owin.Host.HttpListener.dll
@@ -31,3 +30,9 @@ C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\Mi
 C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\Microsoft.Owin.Host.HttpListener.xml
 C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\Microsoft.Owin.Hosting.xml
 C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\Microsoft.Owin.StaticFiles.xml
+C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\obj\Debug\Highcharts.Form1.resources
+C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\System.Net.Http.dll
+C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\System.Security.Cryptography.Algorithms.dll
+C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\System.Security.Cryptography.Encoding.dll
+C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\System.Security.Cryptography.Primitives.dll
+C:\Users\ASUTP\Documents\Nikolaev DA\Projects\Highcharts\Highcharts\bin\Debug\System.Security.Cryptography.X509Certificates.dll
